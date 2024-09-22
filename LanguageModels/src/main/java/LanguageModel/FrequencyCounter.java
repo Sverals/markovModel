@@ -6,26 +6,33 @@ import java.util.Map;
 import java.util.Scanner;
 
 public class FrequencyCounter {
-    private Scanner scan;
+    private String inputString;
     private int kValue;
     private Map<String, Markov> distinctKeyMap;
+    private int totalRandomNumbers;
 
-    public FrequencyCounter() {
+    public FrequencyCounter(String inputString, int kValue, int totalRandomNumbers) {
+        this.inputString = inputString;
         this.distinctKeyMap = new HashMap<>();
-       this.scan = new Scanner(System.in);
-
-       this.kValue = 0;
-    }
-
-    public void getInputAndGenerateKeys() {
-        System.out.println("Enter K Value:");
-        this.kValue = Integer.parseInt(scan.nextLine());
-        System.out.println("Enter a string:");
-        String inputString = scan.nextLine();
-        this.generateKeys(inputString, this.kValue);
-        System.out.println(this);
+        this.kValue = kValue;
+        this.totalRandomNumbers = totalRandomNumbers;
 
     }
+
+    public String generateRandomCharactersBasedOnModel() {
+        this.generateKeys(this.inputString, this.kValue);
+        StringBuilder randomText = new StringBuilder();
+        StringBuilder currentKeyPair = new StringBuilder();
+        currentKeyPair.append(this.inputString, 0, kValue);
+        for (int i = 0; i < this.totalRandomNumbers; i++) {
+            char randomChar = distinctKeyMap.get(currentKeyPair.toString()).random();
+            randomText.append(randomChar);
+            currentKeyPair.append(randomChar);
+            currentKeyPair.deleteCharAt(0);
+        }
+        return randomText.toString();
+    }
+
 
     private void generateKeys(String inputString, int orderKMarkov) {
         StringBuilder sb = new StringBuilder();
@@ -41,6 +48,9 @@ public class FrequencyCounter {
                 distinctKeyMap.putIfAbsent(splitString, new Markov(splitString));
                 if (i + orderKMarkov + 1 <= sb.length()) {
                     char suffix = sb.charAt(i + orderKMarkov);
+                    if (suffix == ' ') {
+                        suffix = '_';
+                    }
                     distinctKeyMap.get(splitString).add(suffix);
                 }
 
@@ -50,6 +60,9 @@ public class FrequencyCounter {
                         Markov currentMarkov = distinctKeyMap.get(key);
                         if (i + orderKMarkov + 1 < sb.length()) {
                             char suffix = sb.charAt(i + orderKMarkov);
+                            if (suffix == ' ') {
+                                suffix = '_';
+                            }
                             currentMarkov.add(suffix);
                         }
                         currentMarkov.add();
