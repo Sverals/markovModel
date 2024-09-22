@@ -15,6 +15,10 @@ public class Markov {
         this.substringCount = 1;
     }
 
+    public List<Suffix> getSuffixList() {
+        return suffixList;
+    }
+
     public void add() {
         this.substringCount++;
     }
@@ -52,9 +56,11 @@ public class Markov {
                 return probChar;
             }
         }
-        return '/';
-
-
+        Character backupChar = '_';
+        for (Character probChar : probabilities.keySet()) {
+            backupChar = probChar;
+        }
+        return backupChar;
     }
     @Override
     public String toString() {

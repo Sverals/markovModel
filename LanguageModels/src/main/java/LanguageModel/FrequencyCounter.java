@@ -10,9 +10,11 @@ public class FrequencyCounter {
     private int kValue;
     private Map<String, Markov> distinctKeyMap;
     private int totalRandomNumbers;
+    private String firstKey;
 
     public FrequencyCounter(String inputString, int kValue, int totalRandomNumbers) {
-        this.inputString = inputString;
+        this.inputString = inputString.replaceAll(" ", "_").replaceAll("\\s+", "");
+        System.out.println(this.inputString);
         this.distinctKeyMap = new HashMap<>();
         this.kValue = kValue;
         this.totalRandomNumbers = totalRandomNumbers;
@@ -20,35 +22,57 @@ public class FrequencyCounter {
     }
 
     public String generateRandomCharactersBasedOnModel() {
-        this.generateKeys(this.inputString, this.kValue);
+        this.generateKeys(this.kValue);
         StringBuilder randomText = new StringBuilder();
         StringBuilder currentKeyPair = new StringBuilder();
-        currentKeyPair.append(this.inputString, 0, kValue);
+        currentKeyPair.append(inputString, 0, kValue);
         for (int i = 0; i < this.totalRandomNumbers; i++) {
-            char randomChar = distinctKeyMap.get(currentKeyPair.toString()).random();
+            char randomChar = ' ';
+            if (distinctKeyMap.containsKey(currentKeyPair.toString())) {
+               randomChar = distinctKeyMap.get((currentKeyPair.toString())).random();
+            }
+            if (randomChar == ' ') {
+                randomChar = distinctKeyMap.get(firstKey).random();
+                currentKeyPair.delete(0, currentKeyPair.length());
+                currentKeyPair.append(firstKey);
+            }
             randomText.append(randomChar);
             currentKeyPair.append(randomChar);
             currentKeyPair.deleteCharAt(0);
+            if (i % 100 == 0) {
+                randomText.append("\n");
+            }
         }
         return randomText.toString();
     }
 
 
-    private void generateKeys(String inputString, int orderKMarkov) {
+    private void generateKeys(int orderKMarkov) {
+        ArrayList<String> allKeys = new ArrayList<>();
         StringBuilder sb = new StringBuilder();
-        sb.append(inputString);
+        sb.append(this.inputString);
 
         for (int i = 0; i < sb.length(); i++) {
-            if (i + orderKMarkov > sb.length()) {
+            if ((sb.length() - 1) <= i + orderKMarkov) {
                 break;
             }
+
             String splitString = sb.substring(i, i + orderKMarkov);
+            if (i == 0) {
+                firstKey = splitString;
+            }
 
             if (!distinctKeyMap.containsKey(splitString)) {
-                distinctKeyMap.putIfAbsent(splitString, new Markov(splitString));
-                if (i + orderKMarkov + 1 <= sb.length()) {
+                if (i + orderKMarkov <= sb.length()) {
+                    distinctKeyMap.putIfAbsent(splitString, new Markov(splitString));
+                    if (!allKeys.contains(splitString)) {
+                        allKeys.add(splitString);
+                    }
                     char suffix = sb.charAt(i + orderKMarkov);
                     if (suffix == ' ') {
+                        suffix = '_';
+                    }
+                    if (suffix == '\n') {
                         suffix = '_';
                     }
                     distinctKeyMap.get(splitString).add(suffix);
@@ -63,6 +87,9 @@ public class FrequencyCounter {
                             if (suffix == ' ') {
                                 suffix = '_';
                             }
+                            if (suffix == '\n') {
+                                suffix = '_';
+                            }
                             currentMarkov.add(suffix);
                         }
                         currentMarkov.add();
@@ -70,6 +97,23 @@ public class FrequencyCounter {
                 }
             }
         }
+        ArrayList<String> itemsToRemove = new ArrayList<>();
+
+        for (String key : distinctKeyMap.keySet()) {
+            Markov currentMarkov = distinctKeyMap.get(key);
+            if (currentMarkov.getSuffixList().isEmpty()) {
+                itemsToRemove.add(key);
+            }
+            for (Suffix s : currentMarkov.getSuffixList()) {
+                if (s.getCount() == 0) {
+                    itemsToRemove.add(key);
+                }
+            }
+        }
+        for (String key : itemsToRemove) {
+            distinctKeyMap.remove(key);
+        }
+        System.out.println(distinctKeyMap);
 
 
 
