@@ -31,14 +31,27 @@ public class FrequencyCounter {
         StringBuilder sb = new StringBuilder();
         sb.append(inputString);
 
-        for (int i = 0; i < sb.length() - (sb.length() % orderKMarkov); i++) {
+        for (int i = 0; i < sb.length(); i++) {
+            if (i + orderKMarkov > sb.length()) {
+                break;
+            }
             String splitString = sb.substring(i, i + orderKMarkov);
+
             if (!distinctKeyMap.containsKey(splitString)) {
                 distinctKeyMap.putIfAbsent(splitString, new Markov(splitString));
+                if (i + orderKMarkov + 1 <= sb.length()) {
+                    char suffix = sb.charAt(i + orderKMarkov);
+                    distinctKeyMap.get(splitString).add(suffix);
+                }
+
             } else {
                 for (String key : distinctKeyMap.keySet()) {
                     if (key.equals(splitString)) {
                         Markov currentMarkov = distinctKeyMap.get(key);
+                        if (i + orderKMarkov + 1 < sb.length()) {
+                            char suffix = sb.charAt(i + orderKMarkov);
+                            currentMarkov.add(suffix);
+                        }
                         currentMarkov.add();
                     }
                 }
