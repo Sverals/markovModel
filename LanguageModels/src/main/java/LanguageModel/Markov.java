@@ -6,7 +6,7 @@ public class Markov {
 
     public Markov(String substring) {
         this.currentSubString = substring;
-        this.substringCount = 0;
+        this.substringCount = 1;
     }
 
     public void add() {
